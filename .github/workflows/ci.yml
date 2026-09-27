@@ -1,0 +1,79 @@
+# CI-Pipeline der mobilen App (ADR-010).
+#
+# Prüft bei jedem Push und Pull Request auf main:
+#   - Typprüfung – getrennt nach App (tsconfig.json, React Native) und Werkzeugen
+#     (tsconfig.tools.json: Skripte, Tests, Generator-Konfiguration mit Node-Typen)
+#   - Unit-Tests der API-Schicht und der Werkzeuge (Vitest)
+#   - API-Client: src/api/generated entspricht exakt dem gepinnten Vertrag (ADR-009)
+#   - Die Pipeline verändert keine versionierte Datei und erzeugt keine neue
+#
+# Lint (expo lint) folgt mit der ESLint-Konfiguration in M1.6.
+#
+# Actions sind per Commit-SHA gepinnt (Schutz der Lieferkette); Dependabot hält die
+# Pins aktuell (.github/dependabot.yml).
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Minimale Rechte: Die Pipeline liest ausschließlich den Code.
+permissions:
+  contents: read
+
+# Ein neuer Commit im selben Pull Request bricht den überholten Lauf ab.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+defaults:
+  run:
+    # bash mit -e und -o pipefail: Jeder fehlschlagende Befehl bricht den Schritt ab.
+    shell: bash
+
+jobs:
+  mobile:
+    # Stabiler Name – wird im Branch-Schutz als Pflicht-Statusprüfung hinterlegt.
+    name: mobile
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Code auschecken
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Node.js einrichten (Version aus .nvmrc)
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Abhängigkeiten installieren (package-lock.json verbindlich)
+        # .npmrc setzt engine-strict: Eine unpassende Node-Version bricht hier ab.
+        run: npm ci
+
+      - name: Typprüfung (App und Werkzeuge getrennt)
+        # npm run typecheck = tsc --noEmit (App) && tsc --noEmit -p tsconfig.tools.json
+        run: npm run typecheck
+
+      - name: Unit-Tests (Vitest)
+        run: npm test
+
+      - name: API-Client entspricht dem gepinnten Vertrag
+        run: npm run check-api
+
+      - name: Arbeitsverzeichnis unverändert
+        # Ergänzt check-api: git diff erkennt nur Änderungen an versionierten Dateien,
+        # nicht neu erzeugte (z. B. eine zusätzliche Datei des Generators).
+        run: |
+          changes="$(git status --porcelain)"
+          if [ -n "$changes" ]; then
+            echo "$changes"
+            echo "::error::Die Pipeline hat Dateien verändert oder neu erzeugt. Lokal 'npm run generate-api' ausführen und das Ergebnis prüfen und committen."
+            exit 1
+          fi

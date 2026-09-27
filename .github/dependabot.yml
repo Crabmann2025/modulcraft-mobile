@@ -1,0 +1,16 @@
+# Dependabot hält die per Commit-SHA gepinnten GitHub Actions aktuell (ADR-010).
+# Ohne diese Konfiguration würden die Pins in .github/workflows/ unbemerkt veralten.
+# Anwendungsabhängigkeiten (uv bzw. npm) sind bewusst nicht Teil dieser Konfiguration.
+
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: ci
+    # Alle Action-Updates einer Woche in einem gemeinsamen Pull Request.
+    groups:
+      github-actions:
+        patterns: ["*"]

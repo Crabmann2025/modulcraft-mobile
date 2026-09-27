@@ -14,7 +14,7 @@ Eigenständiges Repository im Polyrepo ([ADR-009](https://github.com/Crabmann202
 
 ## Voraussetzungen
 
-- Node.js ab 22.18 (geprüft mit 22.20)
+- Node.js ab 22.18 (geprüft mit 22.20). `.nvmrc` legt die Hauptversion 22 für CI und Versionsmanager (nvm, fnm) fest.
 - Für `npm run sync-api` ohne `--file`: laufendes modulcraft-backend (siehe dessen README)
 - Zum Ausprobieren: Expo Go bzw. Android-Emulator oder iOS-Simulator
 
@@ -90,6 +90,22 @@ npm test
 - **Keine Geheimnisse in der App:** Alles mit `EXPO_PUBLIC_`-Präfix landet im App-Bundle und ist öffentlich.
 - **Typen getrennt:** App-Code wird mit der Expo-Konfiguration geprüft (`tsconfig.json`), Werkzeuge und Tests mit `tsconfig.tools.json`. Node-Typen gehören nicht in React-Native-Code.
 
+## Continuous Integration
+
+Festgelegt in [ADR-010](https://github.com/Crabmann2025/modulcraft-docs/blob/main/docs/adr/ADR-010-ci-pipelines-und-lieferkette.md). GitHub Actions führt `.github/workflows/ci.yml` bei jedem Push und Pull Request auf `main` aus (Job `mobile`):
+
+| Schritt | Befehl | Sichert |
+|---|---|---|
+| Abhängigkeiten | `npm ci` | `package-lock.json` ist verbindlich; `engine-strict` bricht bei falscher Node-Version ab |
+| Typprüfung | `npm run typecheck` | App (`tsconfig.json`) und Werkzeuge (`tsconfig.tools.json`) getrennt |
+| Unit-Tests | `npm test` | API-Schicht und Werkzeuge |
+| API-Vertrag | `npm run check-api` | `src/api/generated/` entspricht exakt dem gepinnten Vertrag |
+| Arbeitsverzeichnis | `git status --porcelain` ist leer | keine veränderten oder neu erzeugten Dateien – `check-api` allein erkennt nur Änderungen an versionierten Dateien |
+
+- **Lint** (`expo lint`) fehlt noch: Ohne ESLint-Konfiguration startet der Befehl eine interaktive Einrichtung. Er kommt mit M1.6 in die Pipeline.
+- Actions sind per Commit-SHA gepinnt. Dependabot (`.github/dependabot.yml`) schlägt Aktualisierungen wöchentlich als Pull Request vor.
+- **Lokal wie CI prüfen:** die Befehle der Tabelle nacheinander ausführen.
+
 ## Bekannte Punkte
 
 - **`npm audit` meldet 14 Befunde (moderate) aus Expo SDK 57 selbst:**
@@ -107,6 +123,8 @@ npm test
 
 ```
 modulcraft-mobile/
+├── .github/                  # CI-Pipeline (workflows/ci.yml) und Dependabot für die Actions
+├── .nvmrc                    # Node-Hauptversion für CI und Versionsmanager
 ├── openapi/openapi.json      # gepinnter API-Vertrag (Kopie aus modulcraft-backend)
 ├── openapi-ts.config.ts      # Generator-Konfiguration (@hey-api/openapi-ts, exakt gepinnt)
 ├── scripts/sync-api.ts       # Vertrag holen, prüfen und atomar pinnen
