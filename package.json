@@ -2,6 +2,23 @@
   "name": "modulcraft-mobile",
   "main": "expo-router/entry",
   "version": "1.0.0",
+  "private": true,
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=22.18"
+  },
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web",
+    "lint": "expo lint",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.tools.json",
+    "test": "vitest run",
+    "sync-api": "tsx scripts/sync-api.ts",
+    "generate-api": "openapi-ts",
+    "check-api": "npm run generate-api && git diff --exit-code src/api/generated"
+  },
   "dependencies": {
     "@expo/ui": "~57.0.20",
     "expo": "~57.0.25",
@@ -28,16 +45,16 @@
     "react-native-worklets": "0.10.1"
   },
   "devDependencies": {
+    "@hey-api/openapi-ts": "0.99.0",
+    "@types/node": "24.19.0",
     "@types/react": "~19.2.2",
-    "typescript": "~6.0.3"
+    "tsx": "4.23.15",
+    "typescript": "~6.0.3",
+    "vitest": "5.0.2"
   },
-  "scripts": {
-    "start": "expo start",
-    "reset-project": "node ./scripts/reset-project.js",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
-    "web": "expo start --web",
-    "lint": "expo lint"
-  },
-  "private": true
+  "overrides": {
+    "@hey-api/json-schema-ref-parser": {
+      "js-yaml": "4.3.2"
+    }
+  }
 }

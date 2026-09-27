@@ -30,8 +30,16 @@ yarn-error.*
 .DS_Store
 *.pem
 
-# local env files
-.env*.local
+# Umgebungsdateien: niemals versionieren, Vorlagen (.env.example) schon
+.env
+.env.*
+!.env.example
+
+# Logs (u. a. Fehlerprotokolle des API-Generators)
+*.log
+
+# Lokale Arbeitsregeln
+claude.md
 
 # typescript
 *.tsbuildinfo

@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "target": "es2023",
+    "lib": ["ES2023", "DOM"],
+    "types": ["node"],
+    "skipLibCheck": true,
+
+    /* Werkzeuge (Skripte, Tests, Generator-Konfiguration) – laufen mit tsx bzw. Vitest.
+       Getrennt von der App-Konfiguration: Node-Typen gehören nicht in React-Native-Code. */
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "verbatimModuleSyntax": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+
+    /* Linting */
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "erasableSyntaxOnly": true,
+    "noFallthroughCasesInSwitch": true
+  },
+  "include": ["scripts", "tests", "openapi-ts.config.ts", "vitest.config.mts"]
+}

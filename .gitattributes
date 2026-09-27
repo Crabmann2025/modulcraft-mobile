@@ -1,0 +1,17 @@
+# Einheitliche Zeilenenden (LF) – auch für den gepinnten Vertrag und den generierten Client.
+* text=auto eol=lf
+
+# Windows-spezifische Skripte behalten CRLF.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# Binärdateien nie verändern.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.ico binary
+*.pdf binary
+
+# Erzeugte Dateien in Diffs als generiert kennzeichnen (Review-Fokus auf openapi/openapi.json).
+src/api/generated/** linguist-generated=true

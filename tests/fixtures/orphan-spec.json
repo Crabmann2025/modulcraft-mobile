@@ -1,0 +1,74 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Synthetischer Vertrag mit Waisen (Testfixture)",
+    "version": "v1"
+  },
+  "security": [{ "bearerAuth": [] }],
+  "paths": {
+    "/api/v1/jobs": {
+      "get": {
+        "operationId": "listJobs",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/JobPage" } }
+            }
+          },
+          "default": { "$ref": "#/components/responses/DEFAULT_ERROR" }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": { "type": "http", "scheme": "bearer", "bearerFormat": "JWT" }
+    },
+    "schemas": {
+      "Job": {
+        "type": "object",
+        "required": ["id", "title"],
+        "properties": { "id": { "type": "string" }, "title": { "type": "string" } }
+      },
+      "JobPage": {
+        "type": "object",
+        "required": ["items", "total"],
+        "properties": {
+          "items": { "type": "array", "items": { "$ref": "#/components/schemas/Job" } },
+          "total": { "type": "integer" }
+        }
+      },
+      "ErrorDetail": {
+        "type": "object",
+        "required": ["code"],
+        "properties": { "code": { "type": "string" } }
+      },
+      "Error": {
+        "type": "object",
+        "required": ["error"],
+        "properties": { "error": { "$ref": "#/components/schemas/ErrorDetail" } }
+      },
+      "PaginationMetadata": {
+        "type": "object",
+        "properties": { "total": { "type": "integer" }, "total_pages": { "type": "integer" } }
+      },
+      "OrphanOnlyReferencedByOrphan": {
+        "type": "object",
+        "properties": { "value": { "type": "string" } }
+      },
+      "OrphanReferencingOrphan": {
+        "type": "object",
+        "properties": { "nested": { "$ref": "#/components/schemas/OrphanOnlyReferencedByOrphan" } }
+      }
+    },
+    "responses": {
+      "DEFAULT_ERROR": {
+        "description": "Default error response",
+        "content": {
+          "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
+        }
+      }
+    }
+  }
+}
